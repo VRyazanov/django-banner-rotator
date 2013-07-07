@@ -37,8 +37,8 @@ class CampaignAdmin(admin.ModelAdmin):
 
 
 class BannerAdmin(admin.ModelAdmin):
-    list_display = ('name', 'campaign', 'weight', 'url', 'views', 'is_active')
-    list_filter = ('campaign', 'places', 'is_active')
+    list_display = ('name', 'weight', 'url', 'views', 'is_active')
+    list_filter = ( 'places', 'is_active')
     date_hierarchy = 'created_at'
     fieldsets = (
         (_('Main'), {
@@ -51,7 +51,8 @@ class BannerAdmin(admin.ModelAdmin):
 
     filter_horizontal = ('places',)
     readonly_fields = ('views',)
-
+    exclude = ('campaign', )
+    
     object_log_clicks_template = None
 
     def get_urls(self):
@@ -101,5 +102,5 @@ class BannerAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Banner, BannerAdmin)
-admin.site.register(Campaign, CampaignAdmin)
+#admin.site.register(Campaign, CampaignAdmin)
 admin.site.register(Place, PlaceAdmin)
