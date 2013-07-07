@@ -42,7 +42,7 @@ class BannerAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
     fieldsets = (
         (_('Main'), {
-            'fields': ('campaign', 'places', 'name', 'url', 'url_target', 'file', 'alt'),
+            'fields': ('places', 'name', 'url', 'url_target', 'file', 'alt'),
         }),
         (_('Show'), {
             'fields': ('weight', 'views', 'max_views', 'max_clicks', 'start_at', 'finish_at', 'is_active'),
