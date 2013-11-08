@@ -10,11 +10,11 @@
             <param name="quality" value="high">
             <param name="wmode" value="opaque">
             <param name="movie" value="{{ banner.file.url }}">
-            <param name="flashvars" value="url={% url banner_click banner.id %}?place={{ banner_place.id }}">
+            <param name="flashvars" value="url={% url 'banner_click' banner.id %}?place={{ banner_place.id }}">
 
             <embed
                     src="{{ banner.file.url }}"
-                    flashvars="url={% url banner_click banner.id %}?place={{ banner_place.id }}"
+                    flashvars="url={% url 'banner_click' banner.id %}?place={{ banner_place.id }}"
                     quality="high"
                     allowscriptaccess="Always"
                     wmode="opaque"
@@ -26,7 +26,7 @@
                     {% if banner_place.height %}height="{{ banner_place.height }}"{% endif %}>
         </object>
     {% else %}
-        <a href="{% url banner_click banner.id %}?place={{ banner_place.id }}" target="{{ banner.url_target }}">
+        <a href="{% url 'banner_click' banner.id %}?place={{ banner_place.id }}" target="{{ banner.url_target }}">
             <img
                     src="{{ banner.file.url }}"
                     alt="{{ banner.alt }}"
