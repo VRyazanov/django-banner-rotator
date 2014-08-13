@@ -3,6 +3,10 @@
 from random import random
 
 from django.db import models
+from django.utils.timezone import now
+
+
+
 
 
 def pick(bias_list):
@@ -32,7 +36,10 @@ def pick(bias_list):
 class BannerManager(models.Manager):
 
     def biased_choice(self, place):
-        queryset = self.filter(is_active=True, places=place)
+        not_finished = models.Q(finish_at__gte=now())
+        never_ending = models.Q(finish_at__isnull=True)
+        has_started = models.Q(start_at__lte=now())
+        queryset = self.filter(not_finished | never_ending, is_active=True, places=place).filter(has_started)
 
         if not queryset.count():
             raise self.model.DoesNotExist
