@@ -113,11 +113,18 @@ class Banner(models.Model):
         return self.file.name.lower().endswith("swf")
 
     def view(self):
-        self.views = models.F('views') + 1
+        if self.max_views and self.views >= self.max_views:
+            self.is_active = False
+        else:
+            self.views = models.F('views') + 1
         self.save()
         return ''
 
     def click(self, request):
+        if self.max_clicks and self.clicks.count() >= self.max_clicks:
+            self.is_active = False
+            self.save()
+
         click = {
             'banner': self,
 #             'place': request.GET.get('place'),
