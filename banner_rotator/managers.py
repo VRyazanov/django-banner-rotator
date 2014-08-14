@@ -6,9 +6,6 @@ from django.db import models
 from django.utils.timezone import now
 
 
-
-
-
 def pick(bias_list):
     """ Takes a list of 2-tuples [(item, weight)] using weight as the
         probability when calculating an item to choose
@@ -39,7 +36,9 @@ class BannerManager(models.Manager):
         not_finished = models.Q(finish_at__gte=now())
         never_ending = models.Q(finish_at__isnull=True)
         has_started = models.Q(start_at__lte=now())
-        queryset = self.filter(not_finished | never_ending, is_active=True, places=place).filter(has_started)
+        always_started = models.Q(start_at__isnull=True)
+        queryset = self.filter(not_finished | never_ending, is_active=True, places=place)\
+            .filter(has_started | always_started)
 
         if not queryset.count():
             raise self.model.DoesNotExist
