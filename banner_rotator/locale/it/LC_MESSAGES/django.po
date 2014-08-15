@@ -138,6 +138,10 @@ msgstr "Termina il"
 msgid "Is active"
 msgstr "Attivo"
 
+#: models.py:81
+msgid "In rotation"
+msgstr "In rotazione"
+
 #: models.py:83
 #: templates/admin/banner_rotator/banner/object_log_clicks.html:24
 msgid "Place"

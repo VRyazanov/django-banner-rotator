@@ -30,6 +30,9 @@ class Campaign(models.Model):
     name = models.CharField(_('Name'), max_length=255)
     created_at = models.DateTimeField(_('Create at'), auto_now_add=True)
     updated_at = models.DateTimeField(_('Update at'), auto_now=True)
+    start_at = models.DateTimeField(_('Start at'), blank=True, null=True, default=None)
+    finish_at = models.DateTimeField(_('Finish at'), blank=True, null=True, default=None)
+    is_started = models.BooleanField(_('Started'), default=False)
 
     class Meta:
         verbose_name = _('campaign')
@@ -37,6 +40,14 @@ class Campaign(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        if self.id:
+            old_campaign = Campaign.objects.get(id=self.id)
+            if old_campaign.is_started and self.start_at != old_campaign.start_at or self.finish_at != old_campaign.finish_at:
+                old_campaign.banners.update(start_at=self.start_at, finish_at=self.finish_at)
+        super(Campaign, self).save()
 
 
 class Place(models.Model):
@@ -73,7 +84,7 @@ class Banner(models.Model):
     )
 
     campaign = models.ForeignKey(Campaign, verbose_name=_('Campaign'), blank=True, null=True, default=None,
-        related_name="banners", db_index=True)
+                                 related_name="banners", db_index=True)
 
     name = models.CharField(_('Name'), max_length=255)
     alt = models.CharField(_('Image alt'), max_length=255, blank=True, default='')
@@ -96,7 +107,7 @@ class Banner(models.Model):
     start_at = models.DateTimeField(_('Start at'), blank=True, null=True, default=None)
     finish_at = models.DateTimeField(_('Finish at'), blank=True, null=True, default=None)
 
-    is_active = models.BooleanField(_('Is active'), default=True)
+    in_rotation = models.BooleanField(_('In rotation'), default=True)
 
     places = models.ManyToManyField(Place, verbose_name=_('Place'), related_name="banners", db_index=True)
 
@@ -114,7 +125,7 @@ class Banner(models.Model):
 
     def view(self):
         if self.max_views and self.views >= self.max_views:
-            self.is_active = False
+            self.is_rotation = False
         else:
             self.views = models.F('views') + 1
         self.save()
@@ -122,7 +133,7 @@ class Banner(models.Model):
 
     def click(self, request):
         if self.max_clicks and self.clicks.count() >= self.max_clicks:
-            self.is_active = False
+            self.is_rotation = False
             self.save()
 
         click = {

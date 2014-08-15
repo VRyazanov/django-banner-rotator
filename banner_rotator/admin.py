@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.utils.encoding import force_unicode
 from functools import update_wrapper
 from django.utils.text import capfirst
+from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
 from banner_rotator.models import Campaign, Place, Banner, Click
@@ -28,21 +29,32 @@ class CampaignBannerInline(admin.StackedInline):
     clicks.short_description = _('clicks')
     
     readonly_fields = ['views', clicks]
-    fields = ['is_active', 'places', 'name', 'url', 'file', 'weight', 'views', clicks]
-    formfield_overrides = {
-        models.ManyToManyField: {'widget': forms.CheckboxSelectMultiple},
-    }
+    fields = ['in_rotation', 'places', 'name', 'url', 'file', 'weight', 'views', clicks]
+    filter_horizontal = ('places',)
 
 
 class CampaignAdmin(admin.ModelAdmin):
-    list_display = ('name', 'created_at', 'updated_at')
-    fields = ('name',)
+    list_display = ('name', 'updated_at', 'start_at', 'finish_at', 'is_started')
+    fields = ('name', 'start_at', 'finish_at')
+    list_editable = ['start_at', 'finish_at']
     inlines = [CampaignBannerInline]
+    actions = ['start_campaign']
+
+    def start_campaign(self, request, queryset):
+        for campaign in queryset:
+            start_at = campaign.start_at if campaign.start_at else now()
+            finish_at = campaign.finish_at if campaign.finish_at else None
+            campaign.banners.update(start_at=start_at, finish_at=finish_at, in_rotation=True)
+            campaign.start_at = start_at
+            campaign.finish_at = finish_at
+            campaign.is_started = True
+            campaign.save()
+    start_campaign.short_description = _('Start selected campaigns')
 
 
 class BannerAdmin(admin.ModelAdmin):
-    list_display = ('name', 'campaign', 'weight', 'url', 'views', 'is_active')
-    list_filter = ('campaign', 'places', 'is_active')
+    list_display = ('name', 'campaign', 'weight', 'url', 'views', 'in_rotation')
+    list_filter = ('campaign', 'places', 'in_rotation')
     date_hierarchy = 'created_at'
     
     clicks = lambda banner: banner.clicks.all().count()
@@ -53,7 +65,7 @@ class BannerAdmin(admin.ModelAdmin):
             'fields': ('campaign', 'places', 'name', 'url', 'url_target', 'file', 'alt'),
         }),
         (_('Show'), {
-            'fields': ('weight', 'views', 'max_views', clicks, 'max_clicks', 'start_at', 'finish_at', 'is_active'),
+            'fields': ('weight', 'views', 'max_views', clicks, 'max_clicks', 'start_at', 'finish_at', 'in_rotation'),
         })
     )
 
