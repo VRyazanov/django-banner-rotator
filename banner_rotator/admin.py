@@ -6,6 +6,7 @@ from django import forms, template
 from django.contrib import admin
 from django.contrib.admin.util import unquote
 from django.db import models
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, render_to_response
 from django.utils.encoding import force_unicode
 from functools import update_wrapper
@@ -39,7 +40,7 @@ class CampaignAdmin(admin.ModelAdmin):
     fields = ('name', 'start_at', 'finish_at')
     list_editable = ['start_at', 'finish_at']
     inlines = [CampaignBannerInline]
-    actions = ['start_campaign']
+    actions = ['start_campaign', 'finish_campaign']
 
     def start_campaign(self, request, queryset):
         for campaign in queryset:
@@ -50,7 +51,16 @@ class CampaignAdmin(admin.ModelAdmin):
             campaign.finish_at = finish_at
             campaign.is_started = True
             campaign.save()
+        queryset.update()
     start_campaign.short_description = _('Start selected campaigns')
+
+    def finish_campaign(self, request, queryset):
+        for campaign in queryset:
+            campaign.banners.update(in_rotation=False)
+            campaign.finish_at = now()
+            campaign.is_started = False
+            campaign.save()
+    finish_campaign.short_description = _('Finish selected campaigns')
 
 
 class BannerAdmin(admin.ModelAdmin):
@@ -58,6 +68,7 @@ class BannerAdmin(admin.ModelAdmin):
     list_display = ('name', 'campaign', 'weight', 'url', 'views', 'in_rotation')
     list_filter = ('campaign', 'places', 'in_rotation')
     date_hierarchy = 'created_at'
+    actions = ['start_multiple_banners_indefinitely', 'start_all_actual_banners']
     
     clicks = lambda banner: banner.clicks.all().count()
     clicks.short_description = _('clicks')
@@ -75,6 +86,15 @@ class BannerAdmin(admin.ModelAdmin):
     readonly_fields = ('views', clicks,)
 
     object_log_clicks_template = None
+
+    def start_multiple_banners_indefinitely(self, request, queryset):
+        queryset.filter(campaign__isnull=True).update(start_at=now(), finish_at=None, in_rotation=True)
+    start_multiple_banners_indefinitely.short_description = _('Start multiple banners indefinitely')
+
+    def start_all_actual_banners(self, request, queryset):
+        queryset.filter(campaign__isnull=True).filter(Q(finish_at__gt=now()) | Q(finish_at__isnull=True))\
+            .update(in_rotation=True)
+    start_all_actual_banners.short_description = _('Start all actual banners')
 
     def get_urls(self):
         try:
