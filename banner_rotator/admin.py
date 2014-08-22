@@ -12,6 +12,7 @@ from functools import update_wrapper
 from django.utils.text import capfirst
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
+from banner_rotator.forms import BannerForm
 
 from banner_rotator.models import Campaign, Place, Banner, Click
 
@@ -53,6 +54,7 @@ class CampaignAdmin(admin.ModelAdmin):
 
 
 class BannerAdmin(admin.ModelAdmin):
+    form = BannerForm
     list_display = ('name', 'campaign', 'weight', 'url', 'views', 'in_rotation')
     list_filter = ('campaign', 'places', 'in_rotation')
     date_hierarchy = 'created_at'
