@@ -40,8 +40,12 @@ class BannerManager(models.Manager):
         queryset = self.filter(not_finished | never_ending, in_rotation=True, places=place)\
             .filter(has_started | always_started)
 
-        if not queryset.count():
+        baner_list = list(queryset)
+        if not baner_list:
             raise self.model.DoesNotExist
 
-        normalizer = queryset.aggregate(normalizer=models.Sum('weight'))['normalizer']
-        return pick([(i, i.weight / float(normalizer)) for i in queryset])
+        normalizer = 0
+        for baner in baner_list:
+            normalizer += baner.weight
+
+        return pick([(i, i.weight / float(normalizer)) for i in baner_list])
