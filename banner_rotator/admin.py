@@ -1,11 +1,8 @@
 #-*- coding:utf-8 -*-
 
-import logging
-
-from django import forms, template
+from django import template
 from django.contrib import admin
 from django.contrib.admin.util import unquote
-from django.db import models
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, render_to_response
 from django.utils.encoding import force_unicode
@@ -18,9 +15,15 @@ from banner_rotator.forms import BannerForm
 from banner_rotator.models import Campaign, Place, Banner, Click
 
 
+class BannerInline(admin.StackedInline):
+    model = Banner.places.through
+    extra = 0
+
+
 class PlaceAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug', 'size_str')
     prepopulated_fields = {'slug': ('name',)}
+    inlines = [BannerInline]
 
 
 class CampaignBannerInline(admin.StackedInline):
