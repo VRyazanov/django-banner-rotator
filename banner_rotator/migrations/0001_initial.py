@@ -3,6 +3,8 @@ import datetime
 from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
+from django.conf import settings
+
 
 class Migration(SchemaMigration):
 
@@ -36,7 +38,7 @@ class Migration(SchemaMigration):
         db.create_table('banner_rotator_click', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('banner', self.gf('django.db.models.fields.related.ForeignKey')(related_name='clicks', to=orm['banner_rotator.Banner'])),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='clicks', blank=True, null=True, to=orm['auth.User'])),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='clicks', blank=True, null=True, to=orm[settings.AUTH_USER_MODEL])),
             ('datetime', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('ip', self.gf('django.db.models.fields.IPAddressField')(max_length=15, null=True, blank=True)),
             ('user_agent', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
